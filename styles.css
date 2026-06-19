@@ -458,27 +458,6 @@ body.harness #status-row { justify-content: flex-end; gap: 16px; padding-bottom:
   background: rgba(0, 0, 0, 0.8);
 }
 #debug-strip b { color: #ddd; font-weight: 600; }
-#dpad {
-  position: fixed;
-  right: 16px;
-  bottom: max(48px, calc(env(safe-area-inset-bottom) + 40px));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  z-index: 10;
-}
-.dpad-mid { display: flex; gap: 4px; }
-#dpad button {
-  width: 56px;
-  height: 56px;
-  font-size: 20px;
-  color: #ccc;
-  background: rgba(40, 40, 40, 0.8);
-  border: 1px solid #555;
-  border-radius: 10px;
-}
-#dpad button:active { background: #333; }
 #cam-btn {
   position: fixed;
   left: 16px;

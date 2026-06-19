@@ -111,7 +111,7 @@ function boot() {
   initRide();
   initRenderer(filter);
   initRideUI();
-  initInput({ showDpad: isTouch });
+  initInput();
 
   if (!isGlasses) {
     document.getElementById('debug-strip').hidden = false;

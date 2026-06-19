@@ -65,7 +65,7 @@ export function handleKey(key) {
   }
 }
 
-export function initInput({ showDpad }) {
+export function initInput() {
   window.addEventListener('keydown', (e) => {
     // Let the start screen's native button handle Enter.
     if (!document.getElementById('start-screen').hidden) return;
@@ -83,12 +83,5 @@ export function initInput({ showDpad }) {
     cycleMode(1);
   });
 
-  if (showDpad) {
-    const dpad = document.getElementById('dpad');
-    dpad.hidden = false;
-    dpad.addEventListener('click', (e) => {
-      const key = e.target.closest('button')?.dataset.key;
-      if (key) handleKey(key);
-    });
-  }
+
 }

@@ -1,28 +1,22 @@
-// Ride tracking: start/end lifecycle, cost calculation, localStorage persistence.
+// Ride tracking: start/stop lifecycle and elapsed timer.
 import { CONFIG } from './config.js';
 import { state } from './state.js';
 
 export function initRide() {
   try {
     const r = JSON.parse(localStorage.getItem(CONFIG.RIDE_LS_KEY));
-    if (r && r.startTs && r.bikeType && r.plan) state.ride = r;
+    if (r && r.startTs) state.ride = r;
   } catch { /* corrupted — start fresh */ }
 }
 
-export function startRide(bikeType, plan) {
-  state.ride = { startTs: Date.now(), bikeType, plan };
+export function startRide() {
+  state.ride = { startTs: Date.now() };
   localStorage.setItem(CONFIG.RIDE_LS_KEY, JSON.stringify(state.ride));
 }
 
 export function endRide() {
   state.ride = null;
   localStorage.removeItem(CONFIG.RIDE_LS_KEY);
-}
-
-export function calcCost(ride) {
-  const elapsedMin = (Date.now() - ride.startTs) / 60000;
-  const p = CONFIG.PRICING[ride.plan][ride.bikeType];
-  return p.base + Math.max(0, elapsedMin - p.freeMin) * p.perMin;
 }
 
 export function fmtElapsed(startTs) {

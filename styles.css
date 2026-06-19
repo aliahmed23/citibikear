@@ -12,7 +12,6 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* The hidden attribute must beat any display rule below. */
 [hidden] { display: none !important; }
 
 html, body {
@@ -34,8 +33,7 @@ html, body {
   background: #000;
 }
 
-/* Camera passthrough (harness only): video behind, HUD goes transparent —
-   same effect as the additive waveguide where black = see-through. */
+/* Camera passthrough (harness only) */
 #cam {
   position: fixed;
   inset: 0;
@@ -60,7 +58,7 @@ body.cam-on #app { background: transparent; }
 .start-sub { font-size: 18px; letter-spacing: 4px; color: var(--white); opacity: 0.8; }
 #start-btn {
   min-width: 200px;
-  min-height: 88px; /* Meta 88px tap target */
+  min-height: 88px;
   font-size: 24px;
   letter-spacing: 4px;
   color: var(--green);
@@ -68,6 +66,7 @@ body.cam-on #app { background: transparent; }
   border: 2px solid var(--green);
   border-radius: 12px;
   cursor: pointer;
+  font-family: inherit;
 }
 #start-btn:focus {
   outline: none;
@@ -103,12 +102,12 @@ body.cam-on #app { background: transparent; }
   top: 60px;
   left: 0;
   width: 100%;
-  height: calc(100% - 120px); /* between ribbon and status row */
+  height: calc(100% - 120px);
 }
 .pin {
   position: absolute;
   top: 0;
-  left: -60px; /* positioned via transform only (compositor-friendly) */
+  left: -60px;
   width: 120px;
   display: flex;
   flex-direction: column;
@@ -121,7 +120,7 @@ body.cam-on #app { background: transparent; }
 .pin-glyph {
   width: 44px;
   height: 44px;
-  border: 3px solid var(--green);
+  border: 3px solid var(--cyan);
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   display: flex;
@@ -149,7 +148,6 @@ body.cam-on #app { background: transparent; }
 .pin.lv-green .pin-glyph { border-color: var(--green); }
 .pin.lv-amber .pin-glyph { border-color: var(--amber); }
 .pin.lv-red .pin-glyph { border-color: var(--red); opacity: 0.7; }
-.pin.focused { transform-origin: center bottom; }
 .pin.focused .pin-glyph {
   box-shadow: 0 0 14px 3px rgba(43, 233, 255, 0.6);
 }
@@ -170,8 +168,73 @@ body.cam-on #app { background: transparent; }
 #chevron-right { right: 8px; }
 .chev-deg { font-size: 18px; color: var(--white); }
 
-/* ---------- Status row ---------- */
-#status-row {
+/* ---------- Nearby docks list ---------- */
+#dock-list {
+  position: absolute;
+  top: 68px;
+  left: 0;
+  width: 230px;
+  padding: 8px 10px 10px;
+  background: rgba(0, 0, 0, 0.72);
+  border-right: 1px solid rgba(43, 233, 255, 0.2);
+  border-bottom: 1px solid rgba(43, 233, 255, 0.2);
+  border-radius: 0 0 10px 0;
+}
+.dock-list-header {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  margin-bottom: 6px;
+}
+.dock-entry {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.dock-entry:last-child { border-bottom: none; }
+.de-arrow {
+  width: 22px;
+  font-size: 18px;
+  color: var(--white);
+  text-align: center;
+  flex-shrink: 0;
+}
+.de-count {
+  width: 28px;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: right;
+  flex-shrink: 0;
+}
+.de-count.lv-green { color: var(--green); }
+.de-count.lv-amber { color: var(--amber); }
+.de-count.lv-red   { color: var(--red); }
+.de-name {
+  flex: 1;
+  font-size: 14px;
+  color: var(--white);
+  opacity: 0.88;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.de-dist {
+  font-size: 13px;
+  color: var(--cyan);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.no-docks {
+  font-size: 13px;
+  color: var(--dim);
+  letter-spacing: 1px;
+  padding: 4px 0;
+}
+
+/* ---------- Bottom bar ---------- */
+#bottom-bar {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -180,28 +243,90 @@ body.cam-on #app { background: transparent; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  font-size: 16px;
-  letter-spacing: 2px;
+  padding: 0 16px;
 }
-#status-mode {
-  color: var(--green);
-  font-weight: 700;
+#status-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#status-age { font-size: 14px; color: var(--dim); letter-spacing: 1px; }
+#status-stale {
+  font-size: 13px;
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 1px;
+}
+
+/* Start ride button (before timer) */
+#start-ride-btn {
+  min-width: 110px;
+  min-height: 50px;
   font-size: 20px;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   font-family: inherit;
+  color: var(--green);
   background: transparent;
-  border: 2px solid currentColor;
-  border-radius: 8px;
-  padding: 8px 14px;
+  border: 2px solid var(--green);
+  border-radius: 10px;
   cursor: pointer;
 }
-#status-mode:focus { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); }
-#status-mode.ebike { color: var(--amber); }
-#status-mode.dock { color: var(--cyan); }
-#status-gps { color: var(--amber); }
-#status-stale { color: var(--amber); border: 2px solid var(--amber); padding: 2px 8px; border-radius: 6px; }
-#status-age { color: var(--dim); }
+#start-ride-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(43, 255, 111, 0.45);
+}
+
+/* Timer strip (while riding) */
+#timer-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+#ride-elapsed {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 3px;
+  font-variant-numeric: tabular-nums;
+}
+#stop-btn {
+  font-size: 14px;
+  letter-spacing: 2px;
+  font-family: inherit;
+  color: var(--red);
+  background: transparent;
+  border: 2px solid var(--red);
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+#stop-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.4); }
+
+/* ---------- Detail card ---------- */
+#detail-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 300px;
+  padding: 24px;
+  background: rgba(10, 20, 16, 0.9);
+  border: 2px solid var(--cyan);
+  border-radius: 14px;
+  text-align: center;
+}
+#detail-name {
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  color: var(--cyan);
+}
+.detail-row { font-size: 22px; margin: 6px 0; }
+.detail-hint { font-size: 14px; color: var(--dim); margin-top: 14px; }
 
 /* ---------- Calibration ---------- */
 #calibration-banner {
@@ -216,30 +341,6 @@ body.cam-on #app { background: transparent; }
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.8);
 }
-
-/* ---------- Detail card ---------- */
-#detail-card {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  min-width: 340px;
-  padding: 24px;
-  background: rgba(10, 20, 16, 0.88);
-  border: 2px solid var(--green);
-  border-radius: 14px;
-  text-align: center;
-}
-#detail-name {
-  font-size: 22px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 12px;
-  color: var(--green);
-}
-.detail-row { font-size: 20px; margin: 6px 0; }
-.detail-hint { font-size: 16px; color: var(--dim); margin-top: 12px; }
 
 /* ---------- Toast ---------- */
 #toast {
@@ -256,193 +357,13 @@ body.cam-on #app { background: transparent; }
   white-space: nowrap;
 }
 
-/* ---------- Nearest bar ---------- */
-/* Always-visible bike + dock callouts regardless of heading direction. */
-#nearest-bar {
-  position: absolute;
-  bottom: 64px;
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 12px;
-  pointer-events: none;
-  transition: bottom 0.15s ease;
-}
-body.riding #nearest-bar { bottom: 118px; }
-.nearest-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0, 8, 4, 0.85);
-  border: 1px solid var(--green);
-  border-radius: 10px;
-  padding: 7px 12px;
-}
-.nearest-chip.dock-chip { border-color: var(--cyan); }
-.nc-type {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--dim);
-}
-.nc-arrow {
-  font-size: 22px;
-  color: var(--white);
-  line-height: 1;
-}
-.nc-dist { font-size: 14px; color: var(--cyan); }
-.nc-count {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--green);
-}
-.dock-chip .nc-count { color: var(--cyan); }
-
-/* ---------- Ride strip ---------- */
-#ride-strip {
-  position: absolute;
-  bottom: 60px;
-  left: 0;
-  width: 100%;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  background: rgba(0, 5, 2, 0.88);
-  border-top: 1px solid var(--green);
-}
-#ride-type-chip {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--green);
-  border: 1px solid var(--green);
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-#ride-type-chip.ebike { color: var(--amber); border-color: var(--amber); }
-#ride-elapsed {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--white);
-  letter-spacing: 2px;
-}
-#ride-cost {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--green);
-}
-#end-ride-btn {
-  font-size: 14px;
-  letter-spacing: 2px;
-  font-family: inherit;
-  color: var(--red);
-  background: transparent;
-  border: 2px solid var(--red);
-  border-radius: 8px;
-  padding: 7px 14px;
-  cursor: pointer;
-}
-#end-ride-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.4); }
-
-/* ---------- Unlock button ---------- */
-#unlock-btn {
-  font-size: 14px;
-  letter-spacing: 2px;
-  font-family: inherit;
-  color: var(--green);
-  background: transparent;
-  border: 1px solid var(--green);
-  border-radius: 8px;
-  padding: 7px 14px;
-  cursor: pointer;
-}
-#unlock-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(43, 255, 111, 0.4); }
-
-/* ---------- Ride modal ---------- */
-#ride-modal {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 22px;
-  background: rgba(0, 0, 0, 0.9);
-}
-.ride-modal-title {
-  font-size: 24px;
-  letter-spacing: 4px;
-  color: var(--green);
-}
-#ride-plan-row {
-  display: flex;
-  gap: 12px;
-}
-.plan-btn {
-  padding: 8px 20px;
-  font-size: 14px;
-  letter-spacing: 2px;
-  font-family: inherit;
-  color: var(--dim);
-  background: transparent;
-  border: 1px solid var(--dim);
-  border-radius: 8px;
-  cursor: pointer;
-}
-.plan-btn.active { color: var(--cyan); border-color: var(--cyan); }
-#ride-type-row {
-  display: flex;
-  gap: 16px;
-}
-.ride-type-btn {
-  min-width: 140px;
-  min-height: 110px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--white);
-  background: rgba(10, 25, 15, 0.8);
-  border: 2px solid var(--green);
-  border-radius: 14px;
-  cursor: pointer;
-}
-.ride-type-btn:focus { outline: none; box-shadow: 0 0 0 4px rgba(43, 255, 111, 0.5); }
-.rtb-label { font-size: 22px; font-weight: 700; letter-spacing: 2px; }
-.rtb-price { font-size: 13px; color: var(--cyan); letter-spacing: 1px; }
-#ride-modal-cancel {
-  font-size: 14px;
-  letter-spacing: 2px;
-  font-family: inherit;
-  color: var(--dim);
-  background: transparent;
-  border: 1px solid var(--dim);
-  border-radius: 8px;
-  padding: 8px 22px;
-  cursor: pointer;
-}
-#ride-modal-cancel:focus { outline: none; box-shadow: 0 0 0 3px rgba(90, 90, 90, 0.5); }
-
 /* ---------- Dev harness ---------- */
-/* Glasses get the fixed 600x600 square (hardware viewport); the harness
-   goes full-bleed and relocates the mode chip down by the CAM button. */
 body.harness #app {
   width: 100vw;
   height: 100dvh;
   margin: 0;
 }
-body.harness #status-mode {
-  position: fixed;
-  left: 16px;
-  bottom: max(104px, calc(env(safe-area-inset-bottom) + 96px));
-  z-index: 10;
-}
-body.harness #status-row { justify-content: flex-end; gap: 16px; padding-bottom: 30px; }
+body.harness #bottom-bar { padding-bottom: 30px; }
 #debug-strip {
   position: fixed;
   bottom: 0;

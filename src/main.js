@@ -4,7 +4,7 @@ import { CONFIG } from './config.js';
 import { state, isIdle } from './state.js';
 import { HeadingFilter, getCalibrationOffset } from './heading.js';
 import {
-  isGlasses, isTouch, getHeading, orientationEventName,
+  isGlasses, getHeading, orientationEventName,
   requestSensorPermission, watchLocation,
 } from './platform.js';
 import { loadStationInfo, startPolling } from './citibike.js';

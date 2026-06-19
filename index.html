@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=600, height=600, initial-scale=1, user-scalable=no">
   <meta name="mrbd-web-app-capable" content="yes">
-  <meta name="description" content="Live Citi Bike stations as direction-anchored waypoint pins in your HUD — bikes, docks, and distance at a glance.">
-  <title>Waypoint AR — Citi Bike</title>
+  <meta name="description" content="Live Citi Bike dock availability as AR waypoints — find open docks fast.">
+  <title>Waypoint AR — Citi Bike Docks</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -26,68 +26,37 @@
       <div id="pin-field"></div>
       <div id="chevron-left" class="chevron" hidden>&#9664;<span class="chev-deg"></span></div>
       <div id="chevron-right" class="chevron" hidden><span class="chev-deg"></span>&#9654;</div>
-      <!-- Nearest bar: always visible when GPS + stations are ready -->
-      <div id="nearest-bar" hidden>
-        <div id="nb" class="nearest-chip">
-          <span class="nc-type">BIKE</span>
-          <span id="nb-arrow" class="nc-arrow">—</span>
-          <span id="nb-dist" class="nc-dist"></span>
-          <span id="nb-count" class="nc-count"></span>
-        </div>
-        <div id="nd" class="nearest-chip dock-chip">
-          <span class="nc-type">DOCK</span>
-          <span id="nd-arrow" class="nc-arrow">—</span>
-          <span id="nd-dist" class="nc-dist"></span>
-          <span id="nd-count" class="nc-count"></span>
-        </div>
+
+      <!-- Nearby docks list: always visible once GPS + data are ready -->
+      <div id="dock-list" hidden>
+        <div class="dock-list-header">DOCKS NEARBY</div>
+        <div id="dock-list-items"></div>
       </div>
 
-      <!-- Ride strip: visible only during an active ride -->
-      <div id="ride-strip" hidden>
-        <span id="ride-type-chip"></span>
-        <span id="ride-elapsed">00:00</span>
-        <span id="ride-cost">$0.00</span>
-        <button id="end-ride-btn">END</button>
+      <!-- Bottom bar: start button or timer -->
+      <div id="bottom-bar">
+        <div id="status-left">
+          <span id="status-stale" hidden>STALE</span>
+          <span id="status-age"></span>
+        </div>
+        <div id="timer-strip" hidden>
+          <span id="ride-elapsed">00:00</span>
+          <button id="stop-btn">STOP</button>
+        </div>
+        <button id="start-ride-btn">START</button>
       </div>
 
-      <!-- Ride modal: shown when user taps UNLOCK -->
-      <div id="ride-modal" hidden>
-        <div class="ride-modal-title">BIKE UNLOCKED?</div>
-        <div id="ride-plan-row">
-          <button id="plan-single" class="plan-btn active">SINGLE RIDE</button>
-          <button id="plan-member" class="plan-btn">MEMBER</button>
-        </div>
-        <div id="ride-type-row">
-          <button id="type-classic" class="ride-type-btn focusable">
-            <div class="rtb-label">CLASSIC</div>
-            <div class="rtb-price" id="classic-pricing"></div>
-          </button>
-          <button id="type-ebike" class="ride-type-btn focusable">
-            <div class="rtb-label">E-BIKE</div>
-            <div class="rtb-price" id="ebike-pricing"></div>
-          </button>
-        </div>
-        <button id="ride-modal-cancel" class="focusable">CANCEL</button>
-      </div>
-
-      <div id="status-row">
-        <button id="status-mode" class="focusable">BIKES</button>
-        <span id="status-gps" hidden>GPS &plusmn;<span id="gps-acc"></span>m</span>
-        <span id="status-stale" hidden>STALE</span>
-        <span id="status-age"></span>
-        <button id="unlock-btn" class="focusable">UNLOCK</button>
-      </div>
-      <div id="calibration-banner" hidden>CALIBRATE &#9664;&#9654; offset <span id="cal-offset">0</span>&deg;</div>
+      <!-- Detail card: tap/Enter on a focused pin -->
       <div id="detail-card" hidden>
         <div id="detail-name"></div>
-        <div class="detail-row"><span id="detail-bikes"></span> bikes &middot; <span id="detail-ebikes"></span> e-bikes</div>
         <div class="detail-row"><span id="detail-docks"></span> docks free</div>
-        <div class="detail-row"><span id="detail-dist"></span> &middot; data <span id="detail-age"></span></div>
+        <div class="detail-row"><span id="detail-dist"></span></div>
         <div class="detail-hint">Enter to close</div>
       </div>
+
+      <div id="calibration-banner" hidden>CALIBRATE &#9664;&#9654; offset <span id="cal-offset">0</span>&deg;</div>
       <div id="toast" hidden></div>
     </div>
-
   </div>
 
   <!-- Dev harness chrome (outside the 600x600 frame; hidden on glasses) -->
@@ -99,6 +68,6 @@
     <span>fetch <b id="dbg-fetch">–</b>s</span>
   </div>
   <button id="cam-btn" hidden>CAM</button>
-<script type="module" src="src/main.js"></script>
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>

@@ -2,29 +2,24 @@
 import { getCalibrationOffset } from './heading.js';
 
 export const state = {
-  mode: 'bike',            // 'bike' | 'ebike' | 'dock'
   calibrating: false,
   calibrationOffset: getCalibrationOffset(),
   detailOpen: false,
-  focusedId: null,         // station id with focus (cycled by bearing)
+  focusedId: null,
 
-  // Heading
-  displayHeading: null,    // rAF-interpolated, calibration applied at read time
+  displayHeading: null,
   tiltBeta: 0,
 
-  // GPS
   gps: { lat: null, lng: null, accuracy: null, ts: 0 },
 
-  // Data
-  waypoints: [],           // full joined Waypoint[] (all stations w/ status)
-  nearby: [],              // within radius, sorted by distance, capped; has .distance/.bearing
-  lastFetchOk: 0,          // ts of last successful status fetch
+  waypoints: [],
+  nearby: [],               // within 0.3mi, sorted by distance; has .distance/.bearing
+  lastFetchOk: 0,
   fetchFailing: false,
 
-  // Idle detection (PRD §6.5)
   lastActivity: performance.now(),
 
-  // Active ride: { startTs, bikeType: 'classic'|'ebike', plan: 'single'|'member' } | null
+  // Active ride: { startTs } | null
   ride: null,
 };
 

@@ -10,6 +10,12 @@ import { fmtElapsed } from './ride.js';
 const HALF_FOV = CONFIG.H_FOV_DEG / 2;
 const POOL_SIZE = 8;
 
+// Track layout: [START, BIKES, DOCKS, START, BIKES]
+// Logical mode indices: START=2, BIKES=0, DOCKS=1
+const TRACK_MODES = [2, 0, 1, 2, 0];
+let trackIndex = 1; // starts on BIKES
+let snapping = false;
+
 const els = {};
 const pinPool = [];
 let ribbonCtx = null;
@@ -21,7 +27,7 @@ const ribbonTicks = [];
 export function measure() {
   const app = document.getElementById('app');
   viewW = app.clientWidth || CONFIG.VIEW_PX;
-  fieldH = Math.max((app.clientHeight || CONFIG.VIEW_PX) - 120, 200);
+  fieldH = Math.max((app.clientHeight || CONFIG.VIEW_PX) - 240, 200);
   els['ribbon'].width = viewW;
 }
 
@@ -31,11 +37,11 @@ export function initRenderer(filter) {
     'hud', 'pin-field', 'ribbon',
     'status-stale', 'status-age',
     'calibration-banner', 'cal-offset',
-    'detail-card', 'detail-name', 'detail-docks', 'detail-dist',
+    'detail-card', 'detail-name', 'detail-count', 'detail-label', 'detail-dist',
     'best-turn', 'chevron-left', 'chevron-right', 'toast',
     'debug-strip', 'dbg-raw', 'dbg-flt', 'dbg-gps', 'dbg-rate', 'dbg-fetch',
-    'dock-list', 'dock-list-items',
-    'timer-strip', 'ride-elapsed', 'start-ride-btn',
+    'dock-list', 'dock-list-header', 'dock-list-items',
+    'timer-display', 'ride-elapsed',
   ]) {
     els[id] = document.getElementById(id);
   }
@@ -83,6 +89,69 @@ export function initRenderer(filter) {
       state.focusedId = best.id;
     }
   });
+}
+
+// ---------- mode selector ----------
+export function initModeSelector() {
+  const track = document.getElementById('mode-track');
+  track.style.transition = 'none';
+  applyTrackPosition(trackIndex);
+  requestAnimationFrame(() => {
+    track.style.transition = 'transform 0.2s ease';
+  });
+
+  // Click handlers on track items
+  track.querySelectorAll('.mode-item').forEach((el, i) => {
+    el.addEventListener('click', () => {
+      if (snapping) return;
+      markActivity();
+      // Jump to this track index
+      const delta = i - trackIndex;
+      if (delta !== 0) {
+        for (let d = 0; d < Math.abs(delta); d++) cycleModeSelector(delta > 0 ? 1 : -1);
+      }
+    });
+  });
+}
+
+function applyTrackPosition(idx) {
+  const track = document.getElementById('mode-track');
+  // Center the focused item in the 180px window
+  track.style.transform = `translateY(${60 - idx * 60}px)`;
+  updateModeFocused(idx);
+  state.modeIndex = TRACK_MODES[idx];
+}
+
+function updateModeFocused(idx) {
+  document.querySelectorAll('.mode-item').forEach((el, i) => {
+    el.classList.toggle('mode-focused', i === idx);
+  });
+}
+
+export function cycleModeSelector(dir) {
+  if (snapping) return;
+  const newIdx = trackIndex + dir;
+  // Valid range is 0–4; clamp and handle wrapping
+  if (newIdx < 0 || newIdx > 4) return;
+
+  trackIndex = newIdx;
+  applyTrackPosition(trackIndex);
+
+  // After animating to the edge duplicate, snap to the mirrored real position
+  if (trackIndex === 0 || trackIndex === 4) {
+    snapping = true;
+    const snapTo = trackIndex === 0 ? 3 : 1;
+    setTimeout(() => {
+      const track = document.getElementById('mode-track');
+      track.style.transition = 'none';
+      trackIndex = snapTo;
+      applyTrackPosition(trackIndex);
+      requestAnimationFrame(() => {
+        track.style.transition = 'transform 0.2s ease';
+        snapping = false;
+      });
+    }, 220);
+  }
 }
 
 // ---------- nearby list ----------
@@ -139,6 +208,10 @@ export function focusedWaypoint() {
 }
 
 // ---------- helpers ----------
+function modeCount(w) {
+  return state.modeIndex === 0 ? w.meta.bikes : w.meta.docks;
+}
+
 function levelClass(n) {
   if (n >= 5) return 'lv-green';
   if (n >= 1) return 'lv-amber';
@@ -165,7 +238,6 @@ function effectiveHeading() {
     : norm360(state.displayHeading + state.calibrationOffset);
 }
 
-// 8-direction arrow from a bearing delta (-180..180, 0 = straight ahead).
 function dirArrow(delta) {
   if (delta === null) return '·';
   const d = ((delta % 360) + 360) % 360;
@@ -215,7 +287,7 @@ function refreshPinText() {
     if (slot.stationId === null) continue;
     const w = state.nearby.find((n) => n.id === slot.stationId);
     if (!w) continue;
-    const n = w.meta.docks;
+    const n = modeCount(w);
     slot.count.textContent = n;
     slot.label.textContent = truncLabel(w.label);
     slot.dist.textContent = fmtDist(w.distance);
@@ -253,7 +325,7 @@ function drawRibbon(heading, stale) {
   for (const w of state.nearby) {
     const d = normDelta(w.bearing - heading);
     const x = degToX(d);
-    const n = w.meta.docks;
+    const n = modeCount(w);
     const closeness = 1 - Math.min(w.distance / CONFIG.RADIUS_M, 1);
     const h = 10 + closeness * 22;
     ctx.strokeStyle = stale ? '#5a5a5a'
@@ -280,7 +352,7 @@ function drawRibbon(heading, stale) {
 function bestWaypoint() {
   let fallback = null;
   for (const w of state.nearby) {
-    const n = w.meta.docks;
+    const n = modeCount(w);
     if (n >= CONFIG.BEST_MIN_COUNT) return w;
     if (n >= 1 && !fallback) fallback = w;
   }
@@ -338,7 +410,8 @@ function refreshChrome() {
   refreshDetailCard();
   refreshPinText();
   refreshDockList();
-  refreshRideStrip();
+  refreshTimerDisplay();
+  refreshModeLabels();
 
   if (!els['debug-strip'].hidden) {
     els['dbg-raw'].textContent = headingFilter.raw === null ? '–' : headingFilter.raw.toFixed(1);
@@ -351,10 +424,19 @@ function refreshChrome() {
 }
 
 function refreshDockList() {
+  // START mode shows a timer; no list needed
+  if (state.modeIndex === 2) {
+    els['dock-list'].hidden = true;
+    return;
+  }
+
   const hasGps = state.gps.lat !== null;
   const hasLoaded = state.lastFetchOk > 0;
   els['dock-list'].hidden = !hasGps || !hasLoaded;
   if (!hasGps || !hasLoaded) return;
+
+  const isBikes = state.modeIndex === 0;
+  els['dock-list-header'].textContent = isBikes ? 'BIKES NEARBY' : 'DOCKS NEARBY';
 
   const heading = effectiveHeading();
   const container = els['dock-list-items'];
@@ -369,7 +451,7 @@ function refreshDockList() {
   }
 
   for (const w of state.nearby.slice(0, 5)) {
-    const n = w.meta.docks;
+    const n = modeCount(w);
     const delta = heading !== null ? normDelta(w.bearing - heading) : null;
 
     const entry = document.createElement('div');
@@ -396,12 +478,25 @@ function refreshDockList() {
   }
 }
 
-function refreshRideStrip() {
+function refreshTimerDisplay() {
   const riding = !!state.ride;
-  els['timer-strip'].hidden = !riding;
-  els['start-ride-btn'].hidden = riding;
-  if (!riding) return;
-  els['ride-elapsed'].textContent = fmtElapsed(state.ride.startTs);
+  const inStartMode = state.modeIndex === 2;
+  els['timer-display'].hidden = !(riding || (inStartMode && state.started));
+  if (riding) {
+    els['ride-elapsed'].textContent = fmtElapsed(state.ride.startTs);
+  } else if (inStartMode) {
+    els['ride-elapsed'].textContent = '00:00';
+  }
+}
+
+function refreshModeLabels() {
+  const isRiding = !!state.ride;
+  document.querySelectorAll('.mode-item').forEach((el, i) => {
+    if (TRACK_MODES[i] === 2) {
+      el.textContent = isRiding ? 'STOP' : 'START';
+      el.classList.toggle('mode-stop', isRiding);
+    }
+  });
 }
 
 function refreshDetailCard() {
@@ -409,8 +504,11 @@ function refreshDetailCard() {
   if (!state.detailOpen) return;
   const w = focusedWaypoint();
   if (!w) { state.detailOpen = false; els['detail-card'].hidden = true; return; }
+  const n = modeCount(w);
+  const isBikes = state.modeIndex === 0;
   els['detail-name'].textContent = w.label;
-  els['detail-docks'].textContent = w.meta.docks;
+  els['detail-count'].textContent = n;
+  els['detail-label'].textContent = isBikes ? 'bikes free' : 'docks free';
   els['detail-dist'].textContent = fmtDist(w.distance);
 }
 

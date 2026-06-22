@@ -1,13 +1,13 @@
 // Input: Neural Band / captouch arrive as Arrow + Enter keydown.
-// Map:
-//   Left/Right  -> cycle focus by bearing (or nudge offset in calibration)
-//   Enter       -> open/close detail card on focused pin
-//   c (harness) -> toggle calibration state
-//   v (harness) -> camera passthrough
+// Up/Down  -> cycle mode selector (BIKES / DOCKS / START)
+// Left/Right -> cycle pin focus by bearing (or nudge offset in calibration)
+// Enter    -> activate focused mode, or open/close detail card
+// c (harness) -> toggle calibration state
 import { state, markActivity } from './state.js';
 import { setCalibrationOffset } from './heading.js';
-import { cycleFocus, toast } from './render.js';
-import { toggleCamera } from './camera.js';
+import { cycleFocus, toast, cycleModeSelector } from './render.js';
+
+let onActivate = null;
 
 export function handleKey(key) {
   markActivity();
@@ -27,6 +27,12 @@ export function handleKey(key) {
   }
 
   switch (key) {
+    case 'ArrowUp':
+      cycleModeSelector(-1);
+      break;
+    case 'ArrowDown':
+      cycleModeSelector(1);
+      break;
     case 'ArrowLeft':
       if (!state.detailOpen) cycleFocus(-1);
       break;
@@ -34,23 +40,31 @@ export function handleKey(key) {
       if (!state.detailOpen) cycleFocus(1);
       break;
     case 'Enter':
-      if (state.nearby.length) state.detailOpen = !state.detailOpen;
+      if (state.detailOpen) {
+        state.detailOpen = false;
+      } else if (state.modeIndex === 2) {
+        // START mode: toggle timer
+        onActivate?.(2);
+      } else if (!state.started) {
+        onActivate?.(state.modeIndex);
+      } else if (state.nearby.length) {
+        state.detailOpen = true;
+      }
       break;
     case 'c':
       state.detailOpen = false;
       state.calibrating = true;
       toast('AIM AT A KNOWN STATION, NUDGE ◀▶');
       break;
-    case 'v':
-      toggleCamera();
-      break;
   }
 }
 
-export function initInput() {
+export function initInput({ onActivate: cb }) {
+  onActivate = cb;
+
   window.addEventListener('keydown', (e) => {
-    if (!document.getElementById('start-screen').hidden) return;
-    if (['ArrowLeft', 'ArrowRight', 'Enter', 'c', 'v'].includes(e.key)) {
+    const KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'c'];
+    if (KEYS.includes(e.key)) {
       e.preventDefault();
       handleKey(e.key);
     }

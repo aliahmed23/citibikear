@@ -1,5 +1,4 @@
-// App boot: start-button gesture -> permissions -> sensors + GPS + GBFS ->
-// HUD loop. Single-screen app (no back navigation, PRD §4.2).
+// App boot: mode selection -> permissions -> sensors + GPS + GBFS -> HUD loop.
 import { CONFIG } from './config.js';
 import { state, isIdle } from './state.js';
 import { HeadingFilter, getCalibrationOffset } from './heading.js';
@@ -8,19 +7,13 @@ import {
   requestSensorPermission, watchLocation,
 } from './platform.js';
 import { loadStationInfo, startPolling } from './citibike.js';
-import { initRenderer, startLoop, toast } from './render.js';
+import { initRenderer, startLoop, toast, initModeSelector } from './render.js';
 import { initInput } from './input.js';
-import { initCameraButton } from './camera.js';
-import { initRide } from './ride.js';
-import { initRideUI } from './ride-ui.js';
+import { initRide, startRide, endRide } from './ride.js';
 
 const filter = new HeadingFilter();
 state.calibrationOffset = getCalibrationOffset();
 
-// Dev-harness sim mode (laptop has no compass; optionally spoof GPS):
-//   ?lat=40.738&lng=-73.987[&heading=90]
-// `a`/`d` keys rotate the simulated heading. Any real orientation event
-// takes over (sim keys still nudge, useful for desk-testing on a phone).
 const params = new URLSearchParams(location.search);
 const sim = {
   lat: parseFloat(params.get('lat')),
@@ -34,7 +27,7 @@ function onOrientation(e) {
   const h = getHeading(e);
   if (h !== null) {
     filter.update(h);
-    simHeading = h; // keep sim continuous if real events stop
+    simHeading = h;
   }
   if (typeof e.beta === 'number') state.tiltBeta = e.beta;
 }
@@ -46,12 +39,10 @@ function initSimHeading() {
     filter.update(simHeading);
     state.lastActivity = performance.now();
   });
-  // Seed so pins render before the first keypress.
   filter.update(simHeading);
 }
 
-async function start() {
-  document.getElementById('start-screen').hidden = true;
+async function startApp() {
   document.getElementById('hud').hidden = false;
 
   const granted = await requestSensorPermission();
@@ -91,36 +82,44 @@ async function start() {
       state.lastFetchOk = Date.now();
       state.fetchFailing = false;
     },
-    onError: () => { state.fetchFailing = true; }, // keep last good data
+    onError: () => { state.fetchFailing = true; },
     isIdle: () => isIdle(CONFIG.IDLE_AFTER_MS),
   });
 
   startLoop();
 }
 
+// Called by input.js when the user activates a mode button.
+export async function activateMode(modeIndex) {
+  state.modeIndex = modeIndex;
+
+  if (modeIndex === 2) {
+    // START: toggle ride timer (works before and after GPS is ready)
+    if (state.ride) {
+      endRide();
+    } else {
+      startRide();
+    }
+  }
+
+  if (!state.started) {
+    state.started = true;
+    await startApp();
+  }
+}
+
 function boot() {
-  // Platform-adaptive layout: glasses keep the fixed 600x600 viewport; the
-  // harness goes full-bleed. Class must be set before the renderer measures.
   if (!isGlasses) {
     document.body.classList.add('harness');
-    // The width=600 viewport meta is for the glasses runtime only.
     document.querySelector('meta[name="viewport"]')
       .setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no');
+    document.getElementById('debug-strip').hidden = false;
   }
 
   initRide();
   initRenderer(filter);
-  initRideUI();
-  initInput();
-
-  if (!isGlasses) {
-    document.getElementById('debug-strip').hidden = false;
-    initCameraButton();
-  }
-
-  const btn = document.getElementById('start-btn');
-  btn.focus();
-  btn.addEventListener('click', start, { once: true });
+  initModeSelector();
+  initInput({ onActivate: activateMode });
 }
 
 boot();

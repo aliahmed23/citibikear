@@ -4,22 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=600, height=600, initial-scale=1, user-scalable=no">
   <meta name="mrbd-web-app-capable" content="yes">
-  <meta name="description" content="Live Citi Bike dock availability as AR waypoints — find open docks fast.">
-  <title>Waypoint AR — Citi Bike Docks</title>
+  <meta name="description" content="Live Citi Bike availability as AR waypoints — find bikes and docks fast.">
+  <title>Waypoint AR — Citi Bike</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <video id="cam" autoplay playsinline muted hidden></video>
   <div id="app">
-    <!-- Start screen: permission gesture gate -->
-    <div id="start-screen">
-      <div class="start-title">WAYPOINT AR</div>
-      <div class="start-sub">CITI BIKE</div>
-      <button id="start-btn" class="focusable">START</button>
-      <div class="start-hint">Enter to begin &middot; grants motion + location</div>
+    <!-- Mode selector: BIKES / DOCKS / START rotating toggle (always visible) -->
+    <div id="mode-selector">
+      <div id="mode-track">
+        <div class="mode-item">START</div>
+        <div class="mode-item">BIKES</div>
+        <div class="mode-item">DOCKS</div>
+        <div class="mode-item">START</div>
+        <div class="mode-item">BIKES</div>
+      </div>
     </div>
 
-    <!-- HUD -->
+    <!-- HUD (hidden until first activation) -->
     <div id="hud" hidden>
       <canvas id="ribbon" width="600" height="60"></canvas>
       <div id="best-turn" hidden></div>
@@ -27,29 +29,28 @@
       <div id="chevron-left" class="chevron" hidden>&#9664;<span class="chev-deg"></span></div>
       <div id="chevron-right" class="chevron" hidden><span class="chev-deg"></span>&#9654;</div>
 
-      <!-- Nearby docks list: always visible once GPS + data are ready -->
+      <!-- Status overlay (top-right corner) -->
+      <div id="status-bar">
+        <span id="status-stale" hidden>STALE</span>
+        <span id="status-age"></span>
+      </div>
+
+      <!-- Nearby list: bikes or docks depending on mode -->
       <div id="dock-list" hidden>
-        <div class="dock-list-header">DOCKS NEARBY</div>
+        <div class="dock-list-header" id="dock-list-header">NEARBY</div>
         <div id="dock-list-items"></div>
       </div>
 
-      <!-- Bottom bar: start button or timer -->
-      <div id="bottom-bar">
-        <div id="status-left">
-          <span id="status-stale" hidden>STALE</span>
-          <span id="status-age"></span>
-        </div>
-        <div id="timer-strip" hidden>
-          <span id="ride-elapsed">00:00</span>
-          <button id="stop-btn">STOP</button>
-        </div>
-        <button id="start-ride-btn">START</button>
+      <!-- Timer overlay (START mode) -->
+      <div id="timer-display" hidden>
+        <span id="ride-elapsed">00:00</span>
+        <div class="timer-hint">Enter to stop</div>
       </div>
 
-      <!-- Detail card: tap/Enter on a focused pin -->
+      <!-- Detail card -->
       <div id="detail-card" hidden>
         <div id="detail-name"></div>
-        <div class="detail-row"><span id="detail-docks"></span> docks free</div>
+        <div class="detail-row"><span id="detail-count"></span> <span id="detail-label">free</span></div>
         <div class="detail-row"><span id="detail-dist"></span></div>
         <div class="detail-hint">Enter to close</div>
       </div>
@@ -59,7 +60,7 @@
     </div>
   </div>
 
-  <!-- Dev harness chrome (outside the 600x600 frame; hidden on glasses) -->
+  <!-- Dev harness chrome (outside 600x600 frame; hidden on glasses) -->
   <div id="debug-strip" hidden>
     <span>raw <b id="dbg-raw">–</b></span>
     <span>flt <b id="dbg-flt">–</b></span>
@@ -67,7 +68,6 @@
     <span>evt <b id="dbg-rate">–</b>Hz</span>
     <span>fetch <b id="dbg-fetch">–</b>s</span>
   </div>
-  <button id="cam-btn" hidden>CAM</button>
   <script type="module" src="src/main.js"></script>
 </body>
 </html>

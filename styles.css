@@ -33,46 +33,57 @@ html, body {
   background: #000;
 }
 
-/* Camera passthrough (harness only) */
-#cam {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-}
-body.cam-on #app { background: transparent; }
-
-/* ---------- Start screen ---------- */
-#start-screen {
+/* ---------- Mode selector (always visible at bottom) ---------- */
+#mode-selector {
   position: absolute;
-  inset: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  /* faint top border separates it from AR content */
+  border-top: 1px solid rgba(43, 233, 255, 0.15);
+  background: rgba(0, 0, 0, 0.55);
+}
+
+#mode-track {
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* initial position set by JS */
+  transition: transform 0.2s ease;
+}
+
+.mode-item {
+  height: 60px;
+  width: 280px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 16px;
-}
-.start-title { font-size: 32px; letter-spacing: 6px; color: var(--cyan); }
-.start-sub { font-size: 18px; letter-spacing: 4px; color: var(--white); opacity: 0.8; }
-#start-btn {
-  min-width: 200px;
-  min-height: 88px;
-  font-size: 24px;
-  letter-spacing: 4px;
-  color: var(--green);
-  background: transparent;
-  border: 2px solid var(--green);
-  border-radius: 12px;
+  font-size: 28px;
+  letter-spacing: 6px;
+  color: var(--white);
+  opacity: 0.25;
   cursor: pointer;
-  font-family: inherit;
+  transition: opacity 0.2s, font-size 0.2s, color 0.2s;
+  flex-shrink: 0;
 }
-#start-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 4px rgba(43, 255, 111, 0.5);
+
+.mode-item.mode-focused {
+  opacity: 1;
+  font-size: 36px;
+  color: var(--cyan);
+  text-shadow: 0 0 18px rgba(43, 233, 255, 0.5);
 }
-.start-hint { font-size: 16px; color: var(--dim); }
+
+.mode-item.mode-stop { color: var(--red); opacity: 0.6; }
+.mode-item.mode-stop.mode-focused {
+  color: var(--red);
+  text-shadow: 0 0 18px rgba(255, 77, 77, 0.5);
+}
 
 /* ---------- Ribbon ---------- */
 #ribbon {
@@ -102,7 +113,7 @@ body.cam-on #app { background: transparent; }
   top: 60px;
   left: 0;
   width: 100%;
-  height: calc(100% - 120px);
+  height: calc(100% - 240px); /* 60px ribbon + 180px mode-selector */
 }
 .pin {
   position: absolute;
@@ -168,7 +179,26 @@ body.cam-on #app { background: transparent; }
 #chevron-right { right: 8px; }
 .chev-deg { font-size: 18px; color: var(--white); }
 
-/* ---------- Nearby docks list ---------- */
+/* ---------- Status bar (top-right overlay) ---------- */
+#status-bar {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#status-age { font-size: 13px; color: var(--dim); letter-spacing: 1px; }
+#status-stale {
+  font-size: 12px;
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  padding: 2px 6px;
+  border-radius: 6px;
+  letter-spacing: 1px;
+}
+
+/* ---------- Nearby list ---------- */
 #dock-list {
   position: absolute;
   top: 68px;
@@ -233,82 +263,35 @@ body.cam-on #app { background: transparent; }
   padding: 4px 0;
 }
 
-/* ---------- Bottom bar ---------- */
-#bottom-bar {
+/* ---------- Timer display (START mode) ---------- */
+#timer-display {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-}
-#status-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-#status-age { font-size: 14px; color: var(--dim); letter-spacing: 1px; }
-#status-stale {
-  font-size: 13px;
-  color: var(--amber);
-  border: 1px solid var(--amber);
-  padding: 2px 8px;
-  border-radius: 6px;
-  letter-spacing: 1px;
-}
-
-/* Start ride button (before timer) */
-#start-ride-btn {
-  min-width: 110px;
-  min-height: 50px;
-  font-size: 20px;
-  letter-spacing: 3px;
-  font-family: inherit;
-  color: var(--green);
-  background: transparent;
-  border: 2px solid var(--green);
-  border-radius: 10px;
-  cursor: pointer;
-}
-#start-ride-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(43, 255, 111, 0.45);
-}
-
-/* Timer strip (while riding) */
-#timer-strip {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 #ride-elapsed {
-  font-size: 28px;
+  font-size: 64px;
   font-weight: 700;
   color: var(--white);
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   font-variant-numeric: tabular-nums;
 }
-#stop-btn {
+.timer-hint {
   font-size: 14px;
+  color: var(--dim);
   letter-spacing: 2px;
-  font-family: inherit;
-  color: var(--red);
-  background: transparent;
-  border: 2px solid var(--red);
-  border-radius: 8px;
-  padding: 7px 14px;
-  cursor: pointer;
 }
-#stop-btn:focus { outline: none; box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.4); }
 
 /* ---------- Detail card ---------- */
 #detail-card {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 40%;
   transform: translate(-50%, -50%);
   min-width: 300px;
   padding: 24px;
@@ -345,7 +328,7 @@ body.cam-on #app { background: transparent; }
 /* ---------- Toast ---------- */
 #toast {
   position: absolute;
-  bottom: 70px;
+  bottom: 200px; /* above mode-selector */
   left: 50%;
   transform: translateX(-50%);
   font-size: 18px;
@@ -363,7 +346,6 @@ body.harness #app {
   height: 100dvh;
   margin: 0;
 }
-body.harness #bottom-bar { padding-bottom: 30px; }
 #debug-strip {
   position: fixed;
   bottom: 0;
@@ -379,17 +361,3 @@ body.harness #bottom-bar { padding-bottom: 30px; }
   background: rgba(0, 0, 0, 0.8);
 }
 #debug-strip b { color: #ddd; font-weight: 600; }
-#cam-btn {
-  position: fixed;
-  left: 16px;
-  bottom: max(48px, calc(env(safe-area-inset-bottom) + 40px));
-  min-width: 56px;
-  height: 44px;
-  font-size: 14px;
-  letter-spacing: 2px;
-  color: #ccc;
-  background: rgba(40, 40, 40, 0.8);
-  border: 1px solid #555;
-  border-radius: 10px;
-  z-index: 10;
-}

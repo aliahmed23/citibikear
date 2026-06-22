@@ -21,6 +21,10 @@ export const state = {
 
   // Active ride: { startTs } | null
   ride: null,
+
+  // Mode: 0=BIKES, 1=DOCKS, 2=START
+  modeIndex: 0,
+  started: false,
 };
 
 export function markActivity() {

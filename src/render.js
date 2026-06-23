@@ -8,7 +8,6 @@ import { interpToward } from './heading.js';
 import { fmtElapsed } from './ride.js';
 
 const HALF_FOV = CONFIG.H_FOV_DEG / 2;
-const POOL_SIZE = 8;
 
 // Track layout: [START, BIKES, DOCKS, START, BIKES]
 // Logical mode indices: START=2, BIKES=0, DOCKS=1
@@ -17,28 +16,25 @@ let trackIndex = 1; // starts on BIKES
 let snapping = false;
 
 const els = {};
-const pinPool = [];
 let ribbonCtx = null;
 let headingFilter = null;
 let viewW = CONFIG.VIEW_PX;
-let fieldH = 420;
 const ribbonTicks = [];
 
 export function measure() {
   const app = document.getElementById('app');
   viewW = app.clientWidth || CONFIG.VIEW_PX;
-  fieldH = Math.max((app.clientHeight || CONFIG.VIEW_PX) - 120, 200);
   els['ribbon'].width = viewW;
 }
 
 export function initRenderer(filter) {
   headingFilter = filter;
   for (const id of [
-    'hud', 'pin-field', 'ribbon',
+    'hud', 'ribbon',
     'status-stale', 'status-age',
     'calibration-banner', 'cal-offset',
     'detail-card', 'detail-name', 'detail-count', 'detail-label', 'detail-dist',
-    'best-turn', 'chevron-left', 'chevron-right', 'toast',
+    'toast',
     'debug-strip', 'dbg-raw', 'dbg-flt', 'dbg-gps', 'dbg-rate', 'dbg-fetch',
     'dock-list', 'dock-list-header', 'dock-list-items',
     'timer-display', 'ride-elapsed',
@@ -48,31 +44,6 @@ export function initRenderer(filter) {
   ribbonCtx = els['ribbon'].getContext('2d');
   measure();
   window.addEventListener('resize', measure);
-
-  for (let i = 0; i < POOL_SIZE; i++) {
-    const pin = document.createElement('div');
-    pin.className = 'pin';
-    pin.style.display = 'none';
-    pin.innerHTML = `
-      <div class="pin-glyph"><span class="pin-count"></span></div>
-      <div class="pin-label"></div>
-      <div class="pin-dist"></div>`;
-    els['pin-field'].appendChild(pin);
-    const slot = {
-      el: pin,
-      count: pin.querySelector('.pin-count'),
-      label: pin.querySelector('.pin-label'),
-      dist: pin.querySelector('.pin-dist'),
-      stationId: null,
-    };
-    pin.addEventListener('click', () => {
-      if (slot.stationId === null) return;
-      markActivity();
-      state.focusedId = slot.stationId;
-      state.detailOpen = true;
-    });
-    pinPool.push(slot);
-  }
 
   els['detail-card'].addEventListener('click', () => { state.detailOpen = false; });
 
@@ -251,56 +222,6 @@ function travelDir(stationBearing) {
 }
 
 // ---------- per-frame ----------
-function drawPins(heading, stale, tiltFade) {
-  const visible = [];
-  if (heading !== null) {
-    for (const w of state.nearby) {
-      const delta = normDelta(w.bearing - heading);
-      if (Math.abs(delta) <= HALF_FOV + CONFIG.FOV_PAD_DEG) visible.push({ w, delta });
-    }
-  }
-  visible.sort((a, b) => a.w.distance - b.w.distance);
-  const shown = visible.slice(0, POOL_SIZE);
-
-  for (let i = 0; i < POOL_SIZE; i++) {
-    const slot = pinPool[i];
-    const item = shown[i];
-    if (!item) {
-      if (slot.stationId !== null) {
-        slot.el.style.display = 'none';
-        slot.stationId = null;
-      }
-      continue;
-    }
-    const { w, delta } = item;
-    const x = viewW / 2 + (delta / HALF_FOV) * (viewW / 2);
-    const t = Math.min(w.distance / CONFIG.RADIUS_M, 1);
-    const y = 0.08 * fieldH + (1 - t) * 0.5 * fieldH;
-    const scale = (1.4 - 0.8 * t) * (w.id === state.focusedId ? 1.2 : 1);
-
-    slot.el.style.display = '';
-    slot.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${scale.toFixed(2)})`;
-    slot.el.style.opacity = tiltFade;
-
-    if (slot.stationId !== w.id) slot.stationId = w.id;
-    slot.el.classList.toggle('focused', w.id === state.focusedId);
-    slot.el.classList.toggle('stale', stale);
-  }
-}
-
-function refreshPinText() {
-  for (const slot of pinPool) {
-    if (slot.stationId === null) continue;
-    const w = state.nearby.find((n) => n.id === slot.stationId);
-    if (!w) continue;
-    const n = modeCount(w);
-    slot.count.textContent = n;
-    slot.label.textContent = truncLabel(w.label);
-    slot.dist.textContent = fmtDist(w.distance);
-    slot.el.classList.remove('lv-green', 'lv-amber', 'lv-red');
-    slot.el.classList.add(levelClass(n));
-  }
-}
 
 function drawRibbon(heading, stale) {
   const ctx = ribbonCtx;
@@ -355,50 +276,6 @@ function drawRibbon(heading, stale) {
   }
 }
 
-function bestWaypoint() {
-  let fallback = null;
-  for (const w of state.nearby) {
-    const n = modeCount(w);
-    if (n >= CONFIG.BEST_MIN_COUNT) return w;
-    if (n >= 1 && !fallback) fallback = w;
-  }
-  return fallback;
-}
-
-function drawBestTurn(heading) {
-  const el = els['best-turn'];
-  const w = bestWaypoint();
-  if (!w || heading === null || state.detailOpen) { el.hidden = true; return; }
-  const delta = normDelta(w.bearing - heading);
-  if (Math.abs(delta) <= HALF_FOV + CONFIG.FOV_PAD_DEG) { el.hidden = true; return; }
-  el.hidden = false;
-  const deg = Math.round(Math.abs(delta));
-  if (delta < 0) {
-    el.textContent = `« ${deg}° BEST`;
-    el.style.left = '12px';
-    el.style.right = 'auto';
-  } else {
-    el.textContent = `BEST ${deg}° »`;
-    el.style.right = '12px';
-    el.style.left = 'auto';
-  }
-}
-
-function drawChevrons(heading) {
-  const w = focusedWaypoint() ?? state.nearby[0];
-  let show = false, delta = 0;
-  if (w && heading !== null) {
-    delta = normDelta(w.bearing - heading);
-    show = Math.abs(delta) > HALF_FOV + CONFIG.FOV_PAD_DEG && !state.detailOpen;
-  }
-  els['chevron-left'].hidden = !(show && delta < 0);
-  els['chevron-right'].hidden = !(show && delta > 0);
-  if (show) {
-    const deg = `${Math.round(Math.abs(delta))}°`;
-    (delta < 0 ? els['chevron-left'] : els['chevron-right'])
-      .querySelector('.chev-deg').textContent = deg;
-  }
-}
 
 // ---------- slow (2Hz) updates ----------
 function refreshChrome() {
@@ -414,7 +291,6 @@ function refreshChrome() {
     Math.round(state.calibrationOffset);
 
   refreshDetailCard();
-  refreshPinText();
   refreshDockList();
   refreshTimerDisplay();
   refreshModeLabels();
@@ -556,13 +432,7 @@ export function startLoop() {
     }
 
     const heading = effectiveHeading();
-    const tiltFade = state.tiltBeta < -CONFIG.TILT_FADE_BETA ||
-      state.tiltBeta > 180 - CONFIG.TILT_FADE_BETA ? '0.15' : '1';
-
-    drawPins(heading, stale, tiltFade);
     drawRibbon(heading, stale);
-    drawChevrons(heading);
-    drawBestTurn(heading);
   }
   requestAnimationFrame(frame);
 }

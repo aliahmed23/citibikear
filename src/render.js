@@ -37,7 +37,7 @@ export function initRenderer(filter) {
     'toast',
     'debug-strip', 'dbg-raw', 'dbg-flt', 'dbg-gps', 'dbg-rate', 'dbg-fetch',
     'dock-list', 'dock-list-header', 'dock-list-items',
-    'timer-display', 'ride-elapsed',
+    'timer-display', 'ride-elapsed', 'ride-cost',
   ]) {
     els[id] = document.getElementById(id);
   }
@@ -363,8 +363,11 @@ function refreshTimerDisplay() {
   els['timer-display'].hidden = !(riding || (inStartMode && state.started));
   if (riding) {
     els['ride-elapsed'].textContent = fmtElapsed(state.ride.startTs);
+    const mins = Math.floor((Date.now() - state.ride.startTs) / 60000);
+    els['ride-cost'].textContent = `$${(mins * 0.27).toFixed(2)}`;
   } else if (inStartMode) {
     els['ride-elapsed'].textContent = '00:00';
+    els['ride-cost'].textContent = '';
   }
 }
 

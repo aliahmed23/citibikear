@@ -173,12 +173,22 @@ html, body {
   position: absolute;
   top: 68px;
   right: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
 }
 #ride-elapsed {
   font-size: 28px;
   font-weight: 700;
   color: var(--white);
   letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+}
+#ride-cost {
+  font-size: 16px;
+  color: var(--green);
+  letter-spacing: 1px;
   font-variant-numeric: tabular-nums;
 }
 

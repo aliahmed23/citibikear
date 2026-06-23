@@ -33,57 +33,45 @@ html, body {
   background: #000;
 }
 
-/* ---------- Mode selector (always visible at bottom) ---------- */
+/* ---------- Mode selector (compact, bottom-right) ---------- */
 #mode-selector {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
+  bottom: 14px;
+  right: 14px;
+  width: 160px;
   height: 180px;
   overflow: hidden;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  /* faint top border separates it from AR content */
-  border-top: 1px solid rgba(43, 233, 255, 0.15);
-  background: rgba(0, 0, 0, 0.55);
 }
 
 #mode-track {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  /* initial position set by JS */
+  align-items: flex-end;
   transition: transform 0.2s ease;
 }
 
 .mode-item {
   height: 60px;
-  width: 280px;
+  width: 160px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  letter-spacing: 6px;
+  justify-content: flex-end;
+  font-size: 24px;
+  letter-spacing: 4px;
   color: var(--white);
-  opacity: 0.25;
+  opacity: 0.2;
   cursor: pointer;
-  transition: opacity 0.2s, font-size 0.2s, color 0.2s;
+  transition: opacity 0.2s, color 0.2s;
   flex-shrink: 0;
 }
 
 .mode-item.mode-focused {
   opacity: 1;
-  font-size: 36px;
   color: var(--cyan);
-  text-shadow: 0 0 18px rgba(43, 233, 255, 0.5);
 }
 
-.mode-item.mode-stop { color: var(--red); opacity: 0.6; }
-.mode-item.mode-stop.mode-focused {
-  color: var(--red);
-  text-shadow: 0 0 18px rgba(255, 77, 77, 0.5);
-}
+.mode-item.mode-stop { color: var(--red); }
+.mode-item.mode-stop.mode-focused { color: var(--red); }
 
 /* ---------- Ribbon ---------- */
 #ribbon {
@@ -113,7 +101,7 @@ html, body {
   top: 60px;
   left: 0;
   width: 100%;
-  height: calc(100% - 240px); /* 60px ribbon + 180px mode-selector */
+  height: calc(100% - 120px);
 }
 .pin {
   position: absolute;
@@ -263,28 +251,18 @@ html, body {
   padding: 4px 0;
 }
 
-/* ---------- Timer display (START mode) ---------- */
+/* ---------- Timer display (top-right, 2× dock info text size = 28px) ---------- */
 #timer-display {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  top: 68px;
+  right: 10px;
 }
 #ride-elapsed {
-  font-size: 64px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--white);
-  letter-spacing: 4px;
-  font-variant-numeric: tabular-nums;
-}
-.timer-hint {
-  font-size: 14px;
-  color: var(--dim);
   letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Detail card ---------- */
@@ -328,7 +306,7 @@ html, body {
 /* ---------- Toast ---------- */
 #toast {
   position: absolute;
-  bottom: 200px; /* above mode-selector */
+  bottom: 110px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 18px;

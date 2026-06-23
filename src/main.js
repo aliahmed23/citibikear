@@ -66,6 +66,8 @@ async function startApp() {
         accuracy: pos.coords.accuracy,
         ts: Date.now(),
       };
+      const h = pos.coords.heading;
+      state.gpsHeading = (typeof h === 'number' && isFinite(h)) ? h : null;
     },
     () => toast('WAITING FOR GPS…'),
   );

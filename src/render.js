@@ -27,7 +27,7 @@ const ribbonTicks = [];
 export function measure() {
   const app = document.getElementById('app');
   viewW = app.clientWidth || CONFIG.VIEW_PX;
-  fieldH = Math.max((app.clientHeight || CONFIG.VIEW_PX) - 240, 200);
+  fieldH = Math.max((app.clientHeight || CONFIG.VIEW_PX) - 120, 200);
   els['ribbon'].width = viewW;
 }
 
@@ -114,10 +114,12 @@ export function initModeSelector() {
   });
 }
 
+const ITEM_H = 60; // matches CSS .mode-item height
+
 function applyTrackPosition(idx) {
   const track = document.getElementById('mode-track');
-  // Center the focused item in the 180px window
-  track.style.transform = `translateY(${60 - idx * 60}px)`;
+  // Center the focused item in the 90px window (3 × 30px)
+  track.style.transform = `translateY(${ITEM_H - idx * ITEM_H}px)`;
   updateModeFocused(idx);
   state.modeIndex = TRACK_MODES[idx];
 }
@@ -238,10 +240,14 @@ function effectiveHeading() {
     : norm360(state.displayHeading + state.calibrationOffset);
 }
 
-function dirArrow(delta) {
-  if (delta === null) return '·';
-  const d = ((delta % 360) + 360) % 360;
-  return ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'][Math.round(d / 45) % 8];
+// Travel-relative direction: uses GPS heading when moving, falls back to compass.
+function travelDir(stationBearing) {
+  const ref = state.gpsHeading ?? effectiveHeading();
+  if (ref === null) return '·';
+  const delta = normDelta(stationBearing - ref);
+  if (Math.abs(delta) <= 30) return '↑';
+  if (delta > 150 || delta < -150) return '↓';
+  return delta > 0 ? '→' : '←';
 }
 
 // ---------- per-frame ----------
@@ -438,7 +444,6 @@ function refreshDockList() {
   const isBikes = state.modeIndex === 0;
   els['dock-list-header'].textContent = isBikes ? 'BIKES NEARBY' : 'DOCKS NEARBY';
 
-  const heading = effectiveHeading();
   const container = els['dock-list-items'];
   container.textContent = '';
 
@@ -452,14 +457,12 @@ function refreshDockList() {
 
   for (const w of state.nearby.slice(0, 5)) {
     const n = modeCount(w);
-    const delta = heading !== null ? normDelta(w.bearing - heading) : null;
-
     const entry = document.createElement('div');
     entry.className = 'dock-entry';
 
     const arrowEl = document.createElement('span');
     arrowEl.className = 'de-arrow';
-    arrowEl.textContent = dirArrow(delta);
+    arrowEl.textContent = travelDir(w.bearing);
 
     const countEl = document.createElement('span');
     countEl.className = `de-count ${levelClass(n)}`;

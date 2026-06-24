@@ -364,7 +364,7 @@ function refreshTimerDisplay() {
   if (riding) {
     els['ride-elapsed'].textContent = fmtElapsed(state.ride.startTs);
     const mins = Math.floor((Date.now() - state.ride.startTs) / 60000);
-    els['ride-cost'].textContent = `$${(mins * 0.27).toFixed(2)}`;
+    els['ride-cost'].textContent = `$${(mins * 0.295).toFixed(2)}`;
   } else if (inStartMode) {
     els['ride-elapsed'].textContent = '00:00';
     els['ride-cost'].textContent = '';

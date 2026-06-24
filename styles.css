@@ -107,13 +107,13 @@ html, body {
 #dock-list {
   position: absolute;
   top: 68px;
-  right: 0;
+  left: 0;
   width: 230px;
   padding: 8px 10px 10px;
   background: rgba(0, 0, 0, 0.72);
-  border-left: 1px solid rgba(43, 233, 255, 0.2);
+  border-right: 1px solid rgba(43, 233, 255, 0.2);
   border-bottom: 1px solid rgba(43, 233, 255, 0.2);
-  border-radius: 0 0 0 10px;
+  border-radius: 0 0 10px 0;
 }
 .dock-list-header {
   font-size: 10px;
@@ -168,14 +168,14 @@ html, body {
   padding: 4px 0;
 }
 
-/* ---------- Timer display (top-left, 2× dock info text size = 28px) ---------- */
+/* ---------- Timer display (top-right, 2× dock info text size = 28px) ---------- */
 #timer-display {
   position: absolute;
   top: 68px;
-  left: 10px;
+  right: 10px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 2px;
 }
 #ride-elapsed {

@@ -55,7 +55,7 @@ html, body {
   width: 160px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   font-size: 24px;
   letter-spacing: 4px;
   color: var(--white);
@@ -72,6 +72,45 @@ html, body {
 
 .mode-item.mode-stop { color: var(--red); }
 .mode-item.mode-stop.mode-focused { color: var(--red); }
+
+/* ---------- BIKES / DOCKS toggle ---------- */
+.mode-toggle-item { gap: 10px; }
+
+.tgl-mode-label {
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: currentColor;
+  width: 64px;
+  text-align: left;
+}
+
+.tgl-track {
+  width: 44px;
+  height: 24px;
+  border: 2px solid currentColor;
+  border-radius: 12px;
+  position: relative;
+  flex-shrink: 0;
+  background: var(--cyan);
+  transition: background 0.2s ease;
+}
+
+.mode-toggle-item.mode-docks .tgl-track { background: var(--amber); }
+
+.tgl-thumb {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease;
+}
+
+/* thumb slides right when DOCKS or MAP is active */
+.mode-toggle-item.mode-docks .tgl-thumb,
+.mode-toggle-item.mode-map .tgl-thumb { transform: translateX(20px); }
 
 /* ---------- Ribbon ---------- */
 #ribbon {

@@ -5,7 +5,7 @@
 // c (harness) -> toggle calibration state
 import { state, markActivity } from './state.js';
 import { setCalibrationOffset } from './heading.js';
-import { cycleFocus, toast, cycleModeSelector } from './render.js';
+import { cycleFocus, toast, cycleModeSelector, getFocusedTrackMode, refreshModeLabels } from './render.js';
 
 let onActivate = null;
 
@@ -34,10 +34,20 @@ export function handleKey(key) {
       cycleModeSelector(1);
       break;
     case 'ArrowLeft':
-      if (!state.detailOpen) cycleFocus(-1);
+      if (!state.detailOpen) {
+        const mL = getFocusedTrackMode();
+        if (mL === null) { state.modeIndex = 0; refreshModeLabels(); }
+        else if (mL === 'view') { state.viewMode = 0; refreshModeLabels(); }
+        else cycleFocus(-1);
+      }
       break;
     case 'ArrowRight':
-      if (!state.detailOpen) cycleFocus(1);
+      if (!state.detailOpen) {
+        const mR = getFocusedTrackMode();
+        if (mR === null) { state.modeIndex = 1; refreshModeLabels(); }
+        else if (mR === 'view') { state.viewMode = 1; refreshModeLabels(); }
+        else cycleFocus(1);
+      }
       break;
     case 'Enter':
       if (state.detailOpen) {

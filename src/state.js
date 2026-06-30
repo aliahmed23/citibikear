@@ -25,6 +25,8 @@ export const state = {
 
   // Mode: 0=BIKES, 1=DOCKS, 2=START
   modeIndex: 0,
+  // View: 0=LIST, 1=MAP
+  viewMode: 0,
   started: false,
 };
 

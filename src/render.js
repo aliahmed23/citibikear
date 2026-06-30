@@ -9,10 +9,10 @@ import { fmtElapsed } from './ride.js';
 
 const HALF_FOV = CONFIG.H_FOV_DEG / 2;
 
-// Track layout: [START, BIKES, DOCKS, START, BIKES]
-// Logical mode indices: START=2, BIKES=0, DOCKS=1
-const TRACK_MODES = [2, 0, 1, 2, 0];
-let trackIndex = 1; // starts on BIKES
+// Track layout: [START, BIKES/DOCKS, LIST/MAP, START, BIKES/DOCKS, LIST/MAP]
+// null = BIKES/DOCKS toggle; 'view' = LIST/MAP toggle; 2 = START
+const TRACK_MODES = [2, null, 'view', 2, null, 'view'];
+let trackIndex = 1; // starts on BIKES/DOCKS toggle
 let snapping = false;
 
 const els = {};
@@ -76,10 +76,15 @@ export function initModeSelector() {
     el.addEventListener('click', () => {
       if (snapping) return;
       markActivity();
-      // Jump to this track index
       const delta = i - trackIndex;
       if (delta !== 0) {
         for (let d = 0; d < Math.abs(delta); d++) cycleModeSelector(delta > 0 ? 1 : -1);
+      } else if (TRACK_MODES[i] === null) {
+        state.modeIndex = state.modeIndex === 0 ? 1 : 0;
+        refreshModeLabels();
+      } else if (TRACK_MODES[i] === 'view') {
+        state.viewMode = state.viewMode === 0 ? 1 : 0;
+        refreshModeLabels();
       }
     });
   });
@@ -89,10 +94,11 @@ const ITEM_H = 60; // matches CSS .mode-item height
 
 function applyTrackPosition(idx) {
   const track = document.getElementById('mode-track');
-  // Center the focused item in the 90px window (3 × 30px)
   track.style.transform = `translateY(${ITEM_H - idx * ITEM_H}px)`;
   updateModeFocused(idx);
-  state.modeIndex = TRACK_MODES[idx];
+  const mode = TRACK_MODES[idx];
+  if (mode === 2) state.modeIndex = 2;
+  // null = toggle: preserve current BIKES/DOCKS selection
 }
 
 function updateModeFocused(idx) {
@@ -104,16 +110,15 @@ function updateModeFocused(idx) {
 export function cycleModeSelector(dir) {
   if (snapping) return;
   const newIdx = trackIndex + dir;
-  // Valid range is 0–4; clamp and handle wrapping
-  if (newIdx < 0 || newIdx > 4) return;
+  if (newIdx < 0 || newIdx > 5) return;
 
   trackIndex = newIdx;
   applyTrackPosition(trackIndex);
 
-  // After animating to the edge duplicate, snap to the mirrored real position
-  if (trackIndex === 0 || trackIndex === 4) {
+  // After animating to an edge duplicate, snap to the mirrored real position
+  if (trackIndex === 0 || trackIndex === 5) {
     snapping = true;
-    const snapTo = trackIndex === 0 ? 3 : 1;
+    const snapTo = trackIndex === 0 ? 3 : 2;
     setTimeout(() => {
       const track = document.getElementById('mode-track');
       track.style.transition = 'none';
@@ -125,6 +130,10 @@ export function cycleModeSelector(dir) {
       });
     }, 220);
   }
+}
+
+export function getFocusedTrackMode() {
+  return TRACK_MODES[trackIndex];
 }
 
 // ---------- nearby list ----------
@@ -371,12 +380,22 @@ function refreshTimerDisplay() {
   }
 }
 
-function refreshModeLabels() {
+export function refreshModeLabels() {
   const isRiding = !!state.ride;
+  const isDocks = state.modeIndex === 1;
+  const isMap = state.viewMode === 1;
   document.querySelectorAll('.mode-item').forEach((el, i) => {
     if (TRACK_MODES[i] === 2) {
       el.textContent = isRiding ? 'STOP' : 'START';
       el.classList.toggle('mode-stop', isRiding);
+    } else if (TRACK_MODES[i] === null) {
+      el.classList.toggle('mode-docks', isDocks);
+      const lbl = el.querySelector('.tgl-mode-label');
+      if (lbl) lbl.textContent = isDocks ? 'DOCKS' : 'BIKES';
+    } else if (TRACK_MODES[i] === 'view') {
+      el.classList.toggle('mode-map', isMap);
+      const lbl = el.querySelector('.tgl-mode-label');
+      if (lbl) lbl.textContent = isMap ? 'MAP' : 'LIST';
     }
   });
 }

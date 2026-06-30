@@ -6,6 +6,7 @@
   <meta name="mrbd-web-app-capable" content="yes">
   <meta name="description" content="Live Citi Bike availability as AR waypoints — find bikes and docks fast.">
   <title>Waypoint AR — Citi Bike</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -44,6 +45,9 @@
         <span id="status-age"></span>
       </div>
 
+      <!-- Map view -->
+      <div id="map" hidden></div>
+
       <!-- Nearby list: bikes or docks depending on mode -->
       <div id="dock-list" hidden>
         <div class="dock-list-header" id="dock-list-header">NEARBY</div>
@@ -77,6 +81,7 @@
     <span>evt <b id="dbg-rate">–</b>Hz</span>
     <span>fetch <b id="dbg-fetch">–</b>s</span>
   </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module" src="src/main.js"></script>
 </body>
 </html>

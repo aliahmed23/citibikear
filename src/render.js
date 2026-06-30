@@ -6,6 +6,7 @@ import { state, markActivity } from './state.js';
 import { distanceM, bearingTo, normDelta, norm360 } from './geo.js';
 import { interpToward } from './heading.js';
 import { fmtElapsed } from './ride.js';
+import { showMap, hideMap, updateMap } from './map.js';
 
 const HALF_FOV = CONFIG.H_FOV_DEG / 2;
 
@@ -319,9 +320,19 @@ function refreshDockList() {
   // START mode shows a timer; no list needed
   if (state.modeIndex === 2) {
     els['dock-list'].hidden = true;
+    hideMap();
     return;
   }
 
+  // MAP view
+  if (state.viewMode === 1) {
+    els['dock-list'].hidden = true;
+    showMap();
+    updateMap();
+    return;
+  }
+
+  hideMap();
   const hasGps = state.gps.lat !== null;
   const hasLoaded = state.lastFetchOk > 0;
   els['dock-list'].hidden = !hasGps || !hasLoaded;

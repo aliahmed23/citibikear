@@ -6,7 +6,7 @@ export const CONFIG = {
   PIN_FIELD_TOP: 60,
   PIN_FIELD_HEIGHT: 420,
 
-  RADIUS_M: 643,            // 0.4 miles
+  RADIUS_M: 322,            // 0.2 miles
   RIBBON_GAMMA: 0.6,
   BEST_MIN_COUNT: 3,        // "best" dock station = nearest with at least this many docks
   MAX_STATIONS: 40,

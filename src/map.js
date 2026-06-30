@@ -1,8 +1,10 @@
 import { state } from './state.js';
+import { CONFIG } from './config.js';
 
 let map = null;
 let stationLayer = null;
 let userMarker = null;
+let radiusCircle = null;
 
 function pinColor(count) {
   if (count >= 5) return '#2bff6f';
@@ -49,6 +51,7 @@ export function updateMap() {
 
   map.setView([lat, lng], 15);
 
+  // User position dot
   if (!userMarker) {
     userMarker = L.circleMarker([lat, lng], {
       radius: 8,
@@ -61,6 +64,20 @@ export function updateMap() {
     userMarker.setLatLng([lat, lng]);
   }
 
+  // Radius circle
+  if (!radiusCircle) {
+    radiusCircle = L.circle([lat, lng], {
+      radius: CONFIG.RADIUS_M,
+      color: '#2be9ff',
+      weight: 1,
+      fill: false,
+      opacity: 0.4,
+    }).addTo(map);
+  } else {
+    radiusCircle.setLatLng([lat, lng]);
+  }
+
+  // Station pins
   stationLayer.clearLayers();
   for (const w of state.nearby) {
     const n = state.modeIndex === 0 ? w.meta.bikes : w.meta.docks;

@@ -192,8 +192,14 @@ export function focusedWaypoint() {
 }
 
 // ---------- helpers ----------
+
+// Remembers BIKES/DOCKS selection even while START is focused
+let lastBikeDockMode = 0;
+
 function modeCount(w) {
-  return state.modeIndex === 0 ? w.meta.bikes : w.meta.docks;
+  const m = state.modeIndex === 2 ? lastBikeDockMode : state.modeIndex;
+  if (state.modeIndex !== 2) lastBikeDockMode = state.modeIndex;
+  return m === 0 ? w.meta.bikes : w.meta.docks;
 }
 
 function levelClass(n) {
@@ -317,13 +323,6 @@ function refreshChrome() {
 }
 
 function refreshDockList() {
-  // START mode shows a timer; no list needed
-  if (state.modeIndex === 2) {
-    els['dock-list'].hidden = true;
-    hideMap();
-    return;
-  }
-
   // MAP view
   if (state.viewMode === 1) {
     els['dock-list'].hidden = true;
@@ -393,8 +392,6 @@ function refreshTimerDisplay() {
 }
 
 export function refreshModeLabels() {
-  localStorage.setItem('modeIndex', state.modeIndex);
-  localStorage.setItem('viewMode', state.viewMode);
   const isRiding = !!state.ride;
   const isDocks = state.modeIndex === 1;
   const isMap = state.viewMode === 1;

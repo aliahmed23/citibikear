@@ -24,9 +24,9 @@ export const state = {
   ride: null,
 
   // Mode: 0=BIKES, 1=DOCKS, 2=START
-  modeIndex: 0,
+  modeIndex: parseInt(localStorage.getItem('modeIndex') ?? '0', 10),
   // View: 0=LIST, 1=MAP
-  viewMode: 0,
+  viewMode: parseInt(localStorage.getItem('viewMode') ?? '0', 10),
   started: false,
 };
 

@@ -382,6 +382,8 @@ function refreshTimerDisplay() {
 }
 
 export function refreshModeLabels() {
+  localStorage.setItem('modeIndex', state.modeIndex);
+  localStorage.setItem('viewMode', state.viewMode);
   const isRiding = !!state.ride;
   const isDocks = state.modeIndex === 1;
   const isMap = state.viewMode === 1;

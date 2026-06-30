@@ -1,10 +1,13 @@
 import { state } from './state.js';
 import { CONFIG } from './config.js';
 
+const MAP_VIEW_RADIUS_M = 483; // 0.3 miles — visual extent of the map
+
 let map = null;
 let stationLayer = null;
 let userMarker = null;
 let radiusCircle = null;
+let zoomSet = false;
 
 function pinColor(count) {
   if (count >= 5) return '#2bff6f';
@@ -20,6 +23,15 @@ function makeIcon(count) {
     iconSize: [26, 26],
     iconAnchor: [13, 13],
   });
+}
+
+function fitToRadius(lat, lng) {
+  const latDelta = MAP_VIEW_RADIUS_M / 111320;
+  const lngDelta = MAP_VIEW_RADIUS_M / (111320 * Math.cos(lat * Math.PI / 180));
+  map.fitBounds(
+    [[lat - latDelta, lng - lngDelta], [lat + latDelta, lng + lngDelta]],
+    { animate: false, padding: [0, 0] },
+  );
 }
 
 export function initMap() {
@@ -49,7 +61,13 @@ export function updateMap() {
   const { lat, lng } = state.gps;
   if (lat === null) return;
 
-  map.setView([lat, lng], 15);
+  // First fix: fit map to exactly 0.3 mile radius, then just pan on subsequent updates
+  if (!zoomSet) {
+    fitToRadius(lat, lng);
+    zoomSet = true;
+  } else {
+    map.panTo([lat, lng], { animate: true, duration: 0.5 });
+  }
 
   // User position dot
   if (!userMarker) {
@@ -64,7 +82,7 @@ export function updateMap() {
     userMarker.setLatLng([lat, lng]);
   }
 
-  // Radius circle
+  // 0.2 mile radius circle — shows pin coverage area
   if (!radiusCircle) {
     radiusCircle = L.circle([lat, lng], {
       radius: CONFIG.RADIUS_M,
@@ -77,10 +95,11 @@ export function updateMap() {
     radiusCircle.setLatLng([lat, lng]);
   }
 
-  // Station pins
+  // Station pins (only stations already filtered to 0.2 miles in state.nearby)
   stationLayer.clearLayers();
+  const isBikes = state.modeIndex !== 1;
   for (const w of state.nearby) {
-    const n = state.modeIndex === 0 ? w.meta.bikes : w.meta.docks;
+    const n = isBikes ? w.meta.bikes : w.meta.docks;
     L.marker([w.lat, w.lng], { icon: makeIcon(n) }).addTo(stationLayer);
   }
 }

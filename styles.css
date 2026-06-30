@@ -150,7 +150,7 @@ html, body {
 #map {
   position: absolute;
   top: 68px;
-  left: 0;
+  left: 100px;
   width: 340px;
   height: 340px;
   border-right: 1px solid rgba(43, 233, 255, 0.2);

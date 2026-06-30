@@ -100,7 +100,7 @@ html, body {
 .tgl-thumb {
   width: 16px;
   height: 16px;
-  background: currentColor;
+  background: #000;
   border-radius: 50%;
   position: absolute;
   top: 2px;
@@ -111,6 +111,10 @@ html, body {
 /* thumb slides right when DOCKS or MAP is active */
 .mode-toggle-item.mode-docks .tgl-thumb,
 .mode-toggle-item.mode-map .tgl-thumb { transform: translateX(20px); }
+
+/* LIST/MAP track colors */
+.mode-view-toggle .tgl-track { background: var(--cyan); }
+.mode-view-toggle.mode-map .tgl-track { background: var(--amber); }
 
 /* ---------- Ribbon ---------- */
 #ribbon {

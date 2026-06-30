@@ -67,6 +67,7 @@ export function initModeSelector() {
   const track = document.getElementById('mode-track');
   track.style.transition = 'none';
   applyTrackPosition(trackIndex);
+  refreshModeLabels();
   requestAnimationFrame(() => {
     track.style.transition = 'transform 0.2s ease';
   });

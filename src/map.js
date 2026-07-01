@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { CONFIG } from './config.js';
 
-const MAP_VIEW_RADIUS_M = 483; // 0.3 miles — visual extent of the map
+const MAP_VIEW_RADIUS_M = 620; // ~0.39 miles — visual extent so 0.3mi radius circle has breathing room
 
 let map = null;
 let stationLayer = null;
@@ -38,6 +38,8 @@ export function initMap() {
   if (map) return;
   map = L.map('map', { zoomControl: false, attributionControl: false })
     .setView([40.7128, -74.006], 15);
+  // User dot pane sits above the default marker pane (z-index 600)
+  map.createPane('userPane').style.zIndex = 650;
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
   stationLayer = L.layerGroup().addTo(map);
 }
@@ -69,14 +71,15 @@ export function updateMap() {
     map.panTo([lat, lng], { animate: true, duration: 0.5 });
   }
 
-  // User position dot
+  // User position dot — on userPane so it always renders above station pins
   if (!userMarker) {
     userMarker = L.circleMarker([lat, lng], {
-      radius: 8,
+      radius: 18,
       fillColor: '#2be9ff',
       color: '#000',
       weight: 2,
       fillOpacity: 1,
+      pane: 'userPane',
     }).addTo(map);
   } else {
     userMarker.setLatLng([lat, lng]);

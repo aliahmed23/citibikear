@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { CONFIG } from './config.js';
 
-const MAP_VIEW_RADIUS_M = 620; // ~0.39 miles — visual extent so 0.3mi radius circle has breathing room
+const MAP_VIEW_RADIUS_M = 400; // tight zoom — slightly less than the 0.3mi pin radius
 
 let map = null;
 let stationLayer = null;

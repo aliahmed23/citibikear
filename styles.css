@@ -159,6 +159,18 @@ html, body {
   overflow: hidden;
 }
 
+.map-user-star {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #2be9ff;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  line-height: 1;
+}
+
 .map-pin {
   width: 26px;
   height: 26px;

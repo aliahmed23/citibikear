@@ -71,18 +71,19 @@ export function updateMap() {
     map.panTo([lat, lng], { animate: true, duration: 0.5 });
   }
 
-  // User position dot — on userPane so it always renders above station pins
+  // User position star — on userPane so it always renders above station pins
+  const starIcon = L.divIcon({
+    className: '',
+    html: '<div class="map-user-star">★</div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    pane: 'userPane',
+  });
   if (!userMarker) {
-    userMarker = L.circleMarker([lat, lng], {
-      radius: 18,
-      fillColor: '#2be9ff',
-      color: '#000',
-      weight: 2,
-      fillOpacity: 1,
-      pane: 'userPane',
-    }).addTo(map);
+    userMarker = L.marker([lat, lng], { icon: starIcon, pane: 'userPane' }).addTo(map);
   } else {
     userMarker.setLatLng([lat, lng]);
+    userMarker.setIcon(starIcon);
   }
 
   // 0.2 mile radius circle — shows pin coverage area

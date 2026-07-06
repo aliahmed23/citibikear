@@ -371,6 +371,24 @@ html, body {
   color: #000;
 }
 
+#signup-link {
+  display: inline-block;
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid var(--amber);
+  border-radius: 8px;
+  color: var(--amber);
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+#signup-link:hover {
+  background: var(--amber);
+  color: #000;
+}
+
 /* ---------- Dev harness ---------- */
 body.harness #app {
   width: 100vw;

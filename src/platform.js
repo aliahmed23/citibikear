@@ -9,7 +9,9 @@
 
 // ASSUMPTION: glasses runtime UA is detectable; adjust the regex after the
 // first on-device probe (PRD §10.1). The mrbd meta tag implies a dedicated UA.
-export const isGlasses = /\b(MRBD|Meta Wearable|RayBan|Ray-Ban)\b/i.test(navigator.userAgent);
+export const isGlasses =
+  /\b(MRBD|Meta Wearable|RayBan|Ray-Ban)\b/i.test(navigator.userAgent) ||
+  (window.screen.width === 600 && window.screen.height === 600);
 
 export const isTouch = !isGlasses && ('ontouchstart' in window);
 

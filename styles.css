@@ -327,6 +327,50 @@ html, body {
   white-space: nowrap;
 }
 
+/* ---------- Glasses-only overlay ---------- */
+#glasses-only-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 24px;
+}
+
+#glasses-only-dialog {
+  max-width: 360px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#glasses-only-dialog p {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--white);
+}
+
+#demo-link {
+  display: inline-block;
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid var(--cyan);
+  border-radius: 8px;
+  color: var(--cyan);
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+#demo-link:hover {
+  background: var(--cyan);
+  color: #000;
+}
+
 /* ---------- Dev harness ---------- */
 body.harness #app {
   width: 100vw;

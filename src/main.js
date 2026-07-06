@@ -112,6 +112,7 @@ export async function activateMode(modeIndex) {
 
 function boot() {
   if (!isGlasses) {
+    document.getElementById('glasses-only-overlay').hidden = false;
     document.body.classList.add('harness');
     document.querySelector('meta[name="viewport"]')
       .setAttribute('content', 'width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no');

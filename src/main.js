@@ -54,23 +54,40 @@ async function startApp() {
   if (simGps) {
     state.gps = { lat: sim.lat, lng: sim.lng, accuracy: 5, ts: Date.now() };
     toast(`SIM GPS ${sim.lat.toFixed(4)}, ${sim.lng.toFixed(4)}`);
-  } else watchLocation(
-    (pos) => {
-      const moved = state.gps.lat !== null &&
-        (Math.abs(pos.coords.latitude - state.gps.lat) > 0.0002 ||
-         Math.abs(pos.coords.longitude - state.gps.lng) > 0.0002);
-      if (moved) state.lastActivity = performance.now();
-      state.gps = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        accuracy: pos.coords.accuracy,
-        ts: Date.now(),
+  } else {
+    const startGps = () => watchLocation(
+      (pos) => {
+        const moved = state.gps.lat !== null &&
+          (Math.abs(pos.coords.latitude - state.gps.lat) > 0.0002 ||
+           Math.abs(pos.coords.longitude - state.gps.lng) > 0.0002);
+        if (moved) state.lastActivity = performance.now();
+        state.gps = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          ts: Date.now(),
+        };
+        const h = pos.coords.heading;
+        state.gpsHeading = (typeof h === 'number' && isFinite(h)) ? h : null;
+      },
+      () => toast('WAITING FOR GPS…'),
+    );
+
+    // First try immediately — works on glasses and most Android browsers
+    startGps();
+
+    // If no fix within 3s, wait for a user gesture and try again (iOS / strict permission)
+    setTimeout(() => {
+      if (state.gps.lat !== null) return;
+      const retry = () => {
+        document.removeEventListener('click', retry);
+        document.removeEventListener('keydown', retry);
+        startGps();
       };
-      const h = pos.coords.heading;
-      state.gpsHeading = (typeof h === 'number' && isFinite(h)) ? h : null;
-    },
-    () => toast('WAITING FOR GPS…'),
-  );
+      document.addEventListener('click', retry, { once: true });
+      document.addEventListener('keydown', retry, { once: true });
+    }, 3000);
+  }
 
   try {
     await loadStationInfo();

@@ -334,8 +334,16 @@ function refreshDockList() {
   hideMap();
   const hasGps = state.gps.lat !== null;
   const hasLoaded = state.lastFetchOk > 0;
-  els['dock-list'].hidden = !hasGps || !hasLoaded;
-  if (!hasGps || !hasLoaded) return;
+
+  // Show the panel as soon as data loads; GPS loading shows a placeholder
+  els['dock-list'].hidden = !hasLoaded;
+  if (!hasLoaded) return;
+
+  if (!hasGps) {
+    els['dock-list-header'].textContent = 'LOCATING…';
+    els['dock-list-items'].textContent = '';
+    return;
+  }
 
   const effectiveMode = state.modeIndex === 2 ? lastBikeDockMode : state.modeIndex;
   els['dock-list-header'].textContent = effectiveMode === 0 ? 'BIKES NEARBY' : 'DOCKS NEARBY';

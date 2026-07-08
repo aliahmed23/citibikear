@@ -337,8 +337,8 @@ function refreshDockList() {
   els['dock-list'].hidden = !hasGps || !hasLoaded;
   if (!hasGps || !hasLoaded) return;
 
-  const isBikes = state.modeIndex === 0;
-  els['dock-list-header'].textContent = isBikes ? 'BIKES NEARBY' : 'DOCKS NEARBY';
+  const effectiveMode = state.modeIndex === 2 ? lastBikeDockMode : state.modeIndex;
+  els['dock-list-header'].textContent = effectiveMode === 0 ? 'BIKES NEARBY' : 'DOCKS NEARBY';
 
   const container = els['dock-list-items'];
   container.textContent = '';

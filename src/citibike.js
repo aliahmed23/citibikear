@@ -91,7 +91,8 @@ export function startPolling({ onData, onError, isIdle }) {
     } catch (err) {
       failures += 1;
       onError(err);
-      delay = Math.min(CONFIG.STATUS_POLL_MS * 2 ** failures, 5 * 60_000);
+      // Short first retry (5s) so a cold-start network failure recovers quickly
+      delay = failures === 1 ? 5_000 : Math.min(CONFIG.STATUS_POLL_MS * 2 ** (failures - 1), 5 * 60_000);
     }
     setTimeout(tick, delay);
   }

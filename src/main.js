@@ -91,22 +91,14 @@ async function startApp() {
   startLoop();
 }
 
-// Called by input.js when the user activates a mode button.
-export async function activateMode(modeIndex) {
-  state.modeIndex = modeIndex;
-
+// Called by input.js when the user presses Enter on START/STOP.
+export function activateMode(modeIndex) {
   if (modeIndex === 2) {
-    // START: toggle ride timer (works before and after GPS is ready)
     if (state.ride) {
       endRide();
     } else {
       startRide();
     }
-  }
-
-  if (!state.started) {
-    state.started = true;
-    await startApp();
   }
 }
 
@@ -123,6 +115,10 @@ function boot() {
   initRenderer(filter);
   initModeSelector();
   initInput({ onActivate: activateMode });
+
+  // Auto-start: load data immediately without requiring user to press Start
+  state.started = true;
+  startApp();
 }
 
 boot();

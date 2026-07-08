@@ -53,10 +53,7 @@ export function handleKey(key) {
       if (state.detailOpen) {
         state.detailOpen = false;
       } else if (state.modeIndex === 2) {
-        // START mode: toggle timer
         onActivate?.(2);
-      } else if (!state.started) {
-        onActivate?.(state.modeIndex);
       } else if (state.nearby.length) {
         state.detailOpen = true;
       }

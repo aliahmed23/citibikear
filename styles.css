@@ -333,34 +333,39 @@ html, body {
   inset: 0;
   background: rgba(0, 0, 0, 0.92);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 24px;
-}
-
-#glasses-only-dialog {
-  max-width: 360px;
-  text-align: center;
-  display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: stretch;
+  z-index: 9999;
 }
 
-#glasses-only-dialog p {
+#site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#site-title {
   font-size: 16px;
-  line-height: 1.5;
-  color: var(--white);
+  letter-spacing: 2px;
+  color: var(--cyan);
+}
+
+#site-header-links {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 #demo-link {
   display: inline-block;
-  padding: 12px 24px;
+  padding: 8px 16px;
   background: transparent;
   border: 2px solid var(--cyan);
   border-radius: 8px;
   color: var(--cyan);
-  font-size: 15px;
+  font-size: 13px;
   letter-spacing: 1px;
   text-decoration: none;
   transition: background 0.2s, color 0.2s;
@@ -373,12 +378,12 @@ html, body {
 
 #signup-link {
   display: inline-block;
-  padding: 12px 24px;
+  padding: 8px 16px;
   background: transparent;
   border: 2px solid var(--amber);
   border-radius: 8px;
   color: var(--amber);
-  font-size: 15px;
+  font-size: 13px;
   letter-spacing: 1px;
   text-decoration: none;
   transition: background 0.2s, color 0.2s;
@@ -386,6 +391,43 @@ html, body {
 
 #signup-link:hover {
   background: var(--amber);
+  color: #000;
+}
+
+#glasses-only-dialog {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 40px 24px;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+#glasses-only-dialog p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--white);
+}
+
+.shortcut-link {
+  display: inline-block;
+  padding: 12px 24px;
+  background: transparent;
+  border: 2px solid #a855f7;
+  border-radius: 8px;
+  color: #a855f7;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.shortcut-link:hover {
+  background: #a855f7;
   color: #000;
 }
 
